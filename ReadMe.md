@@ -1,4 +1,3 @@
-
 ---
 
 ## ArgoCD Application Management
@@ -74,5 +73,3 @@ To add a new user to ArgoCD:
 5. Use the ArgoCD CLI to set a password for the new user.
 
 ---
-
-This comprehensive explanation encompasses the details you've provided. If you require further assistance or explanations on specific topics, please don't hesitate to ask!
