@@ -112,5 +112,3 @@ This repository contains documentation and guidelines for managing applications 
 4. Log in to ArgoCD via CLI and create a password for the new user.
 
 ---
-
-This guide provides a comprehensive overview of managing applications using ArgoCD in combination with AWS services and best practices. Follow the outlined steps to effectively deploy, monitor, and manage your applications in a GitOps manner. If you encounter any issues or need further assistance, please refer to relevant documentation or reach out to the appropriate team for support.
