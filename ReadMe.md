@@ -1,105 +1,79 @@
-# ArgoCD-Application
+Absolutely, here's an expanded version of the information you provided:
 
-This README provides an overview of the ArgoCD-Application project, its features, setup instructions, and usage guidelines.
+---
 
-## Table of Contents
+## ArgoCD Application Management
 
-- [Introduction](#introduction)
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Secret Management](#secret-management)
-- [Git Workflow Deployment](#git-workflow-deployment)
-- [Logging](#logging)
-- [Tracing and Observability](#tracing-and-observability)
-- [Monitoring](#monitoring)
-- [Adding Users and Access](#adding-users-and-access)
-- [Install ArgoCD](#install-argocd)
-- [Install Istio](#install-istio)
-- [Integrate with ArgoCD](#integrate-with-argocd)
-- [ArgoCD Auto-Sync](#argocd-auto-sync)
-- [Adding New Users to ArgoCD](#adding-new-users-to-argocd)
+ArgoCD is used to manage applications in your Kubernetes cluster. Each application is defined in a YAML file located at `argocd-apps/ui/{env}/app-{env}.yaml`. These YAML files contain the necessary configuration to deploy and manage your applications.
 
-## Introduction
+## Secret Management with AWS Secret Manager
 
-ArgoCD-Application is a project designed to streamline application management using ArgoCD in conjunction with AWS services. It aims to simplify deployment, secret management, and monitoring processes.
+AWS Secret Manager is utilized for secure secret storage. Secrets are created and managed through the AWS Management Console. ArgoCD connects to AWS Secret Manager to retrieve secrets required by the applications it deploys. This approach ensures sensitive information is kept secure and separate from the application configuration.
 
-## Features
+To add a new secret to AWS Secret Manager:
+1. Navigate to AWS Secret Manager > Store a new secret.
+2. Enter the key/value pairs for the secret, provide a name (e.g., `stage/secret/regcred`), and store the secret.
 
-- Centralized management of ArgoCD applications.
-- Integration with AWS Secret Manager for secure secret storage.
-- Git workflow for deployment to different environments.
-- Automated deployment with CI/CD pipelines.
-- Logging, tracing, and observability tools.
-- Monitoring and alerting using Prometheus and Grafana.
+## ArgoCD Plugin Installation
 
-## Installation
+ArgoCD Vault plugin is set up by applying the `argocd-cm.yaml` and `argocd-repo-server.yaml` configuration files. This integration allows ArgoCD to work with HashiCorp Vault for secret management.
 
-To set up the project, follow these steps:
+## Application Manifest Structure
 
-1. Clone this repository: `git clone https://github.com/yourusername/argo-cd-application.git`
-2. Install necessary dependencies: `npm install` or as required.
-3. Configure AWS Secret Manager and ArgoCD integration.
+Each application's configuration is stored in a `.yaml` file within the `cronjobs` and `services` folders. These YAML files include specifications for Deployment, Service, and Istio VirtualService components. Applications can be synchronized manually or automatically based on operational requirements.
 
-## Usage
+## Git Workflow Deployment (Stage Environment)
 
-1. Access the ArgoCD UI: https://argocd.pocketlaw.io/applications
-2. Manage applications in the `argocd-apps/ui/{env}/app-{env}.yaml` files.
-3. Configure source paths for each application.
+The stage environment's deployment workflow is triggered by new tags in the Git repository. The CI (Continuous Integration) pipeline builds Docker images tagged with version numbers (`vX.X.X`) and Git commit SHA. Images are then pushed to the `ghcr.io` container registry.
 
-## Secret Management
+The CD (Continuous Deployment) pipeline updates the image tag in the application's YAML file located in the services folder. A new commit is made to the ArgoCD repository, triggering a webhook that forces an application sync. As a result, ArgoCD updates the deployment with the new image tag.
 
-- Use AWS Secret Manager for secrets.
-- Create secrets via the AWS Console.
-- Configure ArgoCD to access secrets for deployments.
+## Logging and Monitoring
 
-## Git Workflow Deployment
+Logging is organized within the `elk` folder. The process involves using Filebeat to collect and forward application logs to Elasticsearch, which can be visualized using Kibana. Configuration details for log indexing can be found in `elk/filebeat/cloud-filebeat-configmap.yaml`.
 
-- Automated deployments to staging triggered by tag.
-- CI pipeline: Docker image build, push to ghcr.io.
-- CD pipeline: Update image tag, trigger ArgoCD sync.
-
-## Logging
-
-- Manage logs using the ELK stack.
-- Filebeat collects logs, Elasticsearch indexes, Kibana visualizes.
+For monitoring purposes, Prometheus and Grafana are set up. Prometheus collects metrics, and Grafana is used to create custom dashboards for monitoring and alerting.
 
 ## Tracing and Observability
 
-- Monitor using Kiali and Jaeger UI.
-- Detailed setup and management in the `kiali` folder.
+The `kiali` folder manages tracing and observability components. Kiali and Jaeger UIs are employed to monitor the service mesh. Kiali provides a dashboard for visualization and management of service mesh traffic, while Jaeger offers insights into application traces.
 
-## Monitoring
+## Adding Users for EKS Access with SSO
 
-- Setup Prometheus and Grafana for monitoring and alerting.
-- Dashboards available in the `monitoring` folder.
+To provide users access to the EKS cluster through Single Sign-On (SSO):
+1. Log in to the SSO admin console.
+2. Create or add a user and grant access to the appropriate group.
+3. Configure AWS CLI SSO profile with the necessary information.
+4. Use the AWS CLI to update the kubeconfig for the EKS cluster.
 
-## Adding Users and Access
+## ArgoCD Installation
 
-- Add users to EKS with SSO for secure access.
-- Configure AWS CLI SSO for user access.
+ArgoCD is installed by applying the installation YAML file after creating the necessary namespace. Additionally, the ArgoCD UI can be exposed using Istio for external access.
 
-## Install ArgoCD
+## Istio Installation
 
-- Install ArgoCD on EKS cluster.
-- Expose ArgoCD UI for external access.
+Istio is downloaded and installed using the Istio CLI. A specific version is chosen, and the installation profile is set to "demo." A label is applied to the default namespace to enable automatic sidecar proxy injection.
 
-## Install Istio
+## Integrate EKS with ArgoCD
 
-- Download and install Istio for EKS.
-- Configure Istio for automatic sidecar injection.
+To integrate your EKS cluster with ArgoCD:
+1. Log in to ArgoCD using the CLI.
+2. Use the AWS CLI to update the kubeconfig for the EKS cluster.
+3. Add the EKS cluster to ArgoCD using the cluster's ARN.
 
-## Integrate with ArgoCD
+## ArgoCD Auto-Sync for New Secrets
 
-- Connect EKS cluster to ArgoCD for application management.
-- Use the ArgoCD UI for seamless integration.
+The Reloader tool is used to watch for changes in ConfigMaps and Secrets. When changes are detected, it triggers a rolling upgrade on relevant resources, ensuring that updated configurations take effect.
 
-## ArgoCD Auto-Sync
+## Adding New User to ArgoCD
 
-- Use Reloader to automatically sync changes.
-- Integration instructions provided in the README.
+To add a new user to ArgoCD:
+1. Access the EKS cluster.
+2. Obtain ConfigMap and ArgoCD ConfigMap YAML files.
+3. Apply modifications to the YAML files for RBAC and accounts.
+4. Apply the modified YAML files to the cluster.
+5. Use the ArgoCD CLI to set a password for the new user.
 
-## Adding New Users to ArgoCD
+---
 
-- Manage ArgoCD users and access via kubectl commands.
-- Detailed steps outlined in the README.
+This comprehensive explanation encompasses the details you've provided. If you require further assistance or explanations on specific topics, please don't hesitate to ask!
