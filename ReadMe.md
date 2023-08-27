@@ -110,5 +110,3 @@ This repository contains documentation and guidelines for managing applications 
 2. Update the `argocd-rbac-cm` and `argocd-cm` ConfigMaps with new user information.
 3. Apply the updated ConfigMaps.
 4. Log in to ArgoCD via CLI and create a password for the new user.
-
----
