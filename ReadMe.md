@@ -78,7 +78,7 @@ This repository contains guidelines and information for managing applications us
 - Step 6: Test access to EKS with new user:
 ```
     - aws eks --region eu-north-1 update-kubeconfig --name pl-eks-stage-en1 --profile <devops-user>
-
+```
 ## EKS Cluster Access
 
 - Detailed steps for accessing the EKS cluster are provided in the [Amazon EKS documentation](https://aws.amazon.com/premiumsupport/knowledge-center/eks-cluster-connection/).
