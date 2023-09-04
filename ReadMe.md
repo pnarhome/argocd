@@ -18,6 +18,7 @@ This repository contains guidelines and information for managing applications us
 1. Go to AWS Secret Manager > Store a new secret.
 2. Enter your key/value pairs and proceed.
 3. Specify a secret name (e.g., `stage/secret/regcred`), and complete the setup.
+<img width="1815" alt="Screen Shot 2022-10-10 at 16 53 34" src="https://user-images.githubusercontent.com/74416058/194840337-61f5a3ea-1fac-468d-8e65-995935edf9cf.png">
 
 ## ArgoCD Plugin Integration
 
