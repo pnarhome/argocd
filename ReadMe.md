@@ -40,7 +40,8 @@ This repository contains guidelines and information for managing applications us
   - Creates a commit to push changes to ArgoCD's repository.
   - A webhook triggers ArgoCD's API, forcing application synchronization.
   - ArgoCD automatically syncs and rolls out a new deployment with the updated image tag.
-- See a sample pipeline run [here](https://github.com/pocketsolutions/argocd-ci-test/runs/8202275389?check_suite_focus=true).
+- See a sample pipeline run [here](https://github.com/pocketsolutions/argocd-ci-test/runs/8202275389?check_suite_focus=true
+  ![alt text](mermaid-diagram-2022-09-01-130650.png).
 
 ## Logging with ELK Stack
 
@@ -63,11 +64,25 @@ This repository contains guidelines and information for managing applications us
 
 1. Access the AWS SSO admin console [here](https://eu-north-1.console.aws.amazon.com/singlesignon/identity/home?region=eu-north-1#!/dashboard).
 2. Add or create a new user (e.g., `devops-user`) and grant them the "EKS_Cluster_Admins" group.
-3. Configure AWS CLI SSO using the provided example in the README.
+3. Configure AWS CLI SSO
+4. Login to EKS as cluster creator:
+  `- aws eks --region eu-north-1 update-kubeconfig --name pl-eks-stage-en1 --profile <cluster_creator>`
+5. Update configmap in EKS
+  - kubectl edit configmap aws-auth -n kube-system. Add following lines:
+```
+    - groups:
+      - system:masters
+      rolearn: arn:aws:iam::381422252640:role/AWSReservedSSO_EKSClusterAdminAccess_427e09b594653102
+      username: devops-user
+```
+- Step 6: Test access to EKS with new user:
+```
+    - aws eks --region eu-north-1 update-kubeconfig --name pl-eks-stage-en1 --profile <devops-user>
 
 ## EKS Cluster Access
 
 - Detailed steps for accessing the EKS cluster are provided in the [Amazon EKS documentation](https://aws.amazon.com/premiumsupport/knowledge-center/eks-cluster-connection/).
+- aws eks --region eu-north-1 update-kubeconfig --name pl-eks-stage-en1 --profile <profile_name_sso>
 
 ## Installing ArgoCD
 
@@ -90,12 +105,17 @@ This repository contains guidelines and information for managing applications us
 2. Access the existing Istio configuration at `istio-ingress/<env>`.
 3. Export the Istio `bin` folder to the `PATH`: `export PATH=$PWD/bin:$PATH`.
 4. Install Istio on your EKS cluster and enable automatic Envoy sidecar injection.
+```
+    $ kubectl label namespace default istio-injection=enabled
+```
 
 ## Integrating EKS Cluster with ArgoCD
 
 1. Login to ArgoCD: `argocd login argocd.pocketlaw.io`.
 2. Login to your EKS cluster: `aws eks --region eu-north-1 update-kubeconfig --name eks-dev`.
 3. Add your EKS cluster to ArgoCD: `argocd cluster add arn:aws:eks:eu-north-1:381422252640:cluster/eks-dev`.
+4. Check on ArgoCD console
+![alt text](argocd-connect-eks.png)
 
 ## ArgoCD Auto-Sync with New Secrets
 
@@ -103,10 +123,14 @@ This repository contains guidelines and information for managing applications us
 - Install Reloader: `kubectl apply -f https://raw.githubusercontent.com/stakater/Reloader/master/deployments/kubernetes/reloader.yaml`.
 - Add the `reloader.stakater.com/auto: "true"` annotation to deployment `.yaml` files.
 
-For further details and visual content, please refer to the original README.
 ## Adding a New User to ArgoCD
 
 1. Log in to your EKS cluster.
 2. Update the `argocd-rbac-cm` and `argocd-cm` ConfigMaps with new user information.
+   - kubectl get cm argocd-rbac-cm -o yaml > argocd-rbac-cm-xxxx.yaml (add oneline: ewinberg, role:backend\n")
+   - kubectl get cm argocd-cm -o yaml > argocd-cm-yyyy.yaml (Add one line: accounts.ewinberg: apiKey,login)
 3. Apply the updated ConfigMaps.
+   - kubectl apply -f argocd-rbac-cm-xxxx.yaml argocd-cm-yyyy.yaml
 4. Log in to ArgoCD via CLI and create a password for the new user.
+   - argocd login argocd.pocketlaw.io
+   - argocd account update-password --account <your_new_user> --new-password <your_new_password>
